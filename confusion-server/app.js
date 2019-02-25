@@ -1,6 +1,7 @@
 import dishRouter from './routes/dishRouter';
 import leaderRouter from './routes/leaderRouter';
 import promoRouter from './routes/promoRouter';
+import mongoose from 'mongoose';
 
 var createError = require('http-errors');
 var express = require('express');
@@ -26,8 +27,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);
-app.use('/leaders', dishRouter);
-app.use('/promotions', dishRouter);
+app.use('/leaders', leaderRouter);
+app.use('/promotions', promoRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -44,5 +46,13 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+//Connect mongodb
+const url = 'mongodb://localhost:27017/confusion';
+mongoose.connect(url).then(db => {
+  console.log('Connect mongodb successfully!');
+}, err => {
+  console.log('Fail to connect mongodb: ', err);
+})
 
 module.exports = app;
