@@ -17,7 +17,7 @@ export const jwtPassport = passport.use(new JwtStrategy({
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: Config.SECRET_KEY
 }, (payload, done) => {
-    User.findOne({id: payload.sub}, (err, user)=> {
+    User.findOne({_id: payload._id}, (err, user)=> {
         if(err){
             return done(err, false);
         }
@@ -31,3 +31,14 @@ export const jwtPassport = passport.use(new JwtStrategy({
 }));
 
 export const verifyUser = passport.authenticate('jwt', {session: false});
+export const verifyAdmin = (req, res, next) => {
+    User.findOne({_id: req.user._id})
+    .then(user => {
+        if(!user || !user.admin){
+            let err = new Error('You are not the admin user!');
+            return next(err);
+        }
+        return next();
+    }, err => next(err))
+    .catch(err => next(err));
+};
