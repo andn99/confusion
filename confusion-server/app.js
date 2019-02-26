@@ -1,18 +1,24 @@
 import dishRouter from './routes/dishRouter';
 import leaderRouter from './routes/leaderRouter';
 import promoRouter from './routes/promoRouter';
+import userRouter from './routes/users';
 import mongoose from 'mongoose';
+import session from 'express-session';
+import sessionFileStore from 'session-file-store';
+import passport from 'passport';
+import authenticate from './authenticate';
+import Config from './config';
 
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+
 
 var app = express();
+const FileStore = sessionFileStore(session);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -21,11 +27,13 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(passport.initialize());
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/users', userRouter);
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/dishes', dishRouter);
 app.use('/leaders', leaderRouter);
 app.use('/promotions', promoRouter);
@@ -48,8 +56,7 @@ app.use(function(err, req, res, next) {
 });
 
 //Connect mongodb
-const url = 'mongodb://localhost:27017/confusion';
-mongoose.connect(url).then(db => {
+mongoose.connect(Config.MONGODB_URL).then(db => {
   console.log('Connect mongodb successfully!');
 }, err => {
   console.log('Fail to connect mongodb: ', err);

@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import Promotions from '../models/promotions';
+import * as authenticate from '../authenticate';
 
 const promoRouter = express.Router();
 promoRouter.use(bodyParser.json())
@@ -15,7 +16,7 @@ promoRouter.route('/')
     }, err => next(err))
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
     Promotions.create(req.body)
     .then(promo => {
         res.statusCode = 200;
@@ -24,11 +25,11 @@ promoRouter.route('/')
     }, err => next(err))
     .catch(err => next(err));
 })
-.put((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /leaders');
 })
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser, (req, res, next) => {
     Promotions.remove({})
     .then(result => {
         res.statusCode = 200;
@@ -48,11 +49,11 @@ promoRouter.route('/:promoId')
     }, err => next(err))
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /leaders/'+ req.params.promoId);
 })
-.put((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
     Promotions.findByIdAndUpdate(req.params.promoId, {$set: req.body}, {new: true})
     .then(promo => {
         res.statusCode = 200;
@@ -61,7 +62,7 @@ promoRouter.route('/:promoId')
     }, err => next(err))
     .catch(err => next(err));
 })
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser, (req, res, next) => {
     Promotions.findOneAndRemove(req.params.promoId)
     .then(result => {
         res.statusCode = 200;
