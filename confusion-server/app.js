@@ -2,9 +2,8 @@ import dishRouter from './routes/dishRouter';
 import leaderRouter from './routes/leaderRouter';
 import promoRouter from './routes/promoRouter';
 import userRouter from './routes/users';
+import uploadRouter from './routes/uploadRouter';
 import mongoose from 'mongoose';
-import session from 'express-session';
-import sessionFileStore from 'session-file-store';
 import passport from 'passport';
 import authenticate from './authenticate';
 import Config from './config';
@@ -18,7 +17,13 @@ var indexRouter = require('./routes/index');
 
 
 var app = express();
-const FileStore = sessionFileStore(session);
+app.all('*', (req, res, next) => {
+  if(req.secure){
+    next();
+  }else{
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort'));
+  }
+})
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -37,6 +42,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/dishes', dishRouter);
 app.use('/leaders', leaderRouter);
 app.use('/promotions', promoRouter);
+app.use('/imageUpload', uploadRouter);
 
 
 // catch 404 and forward to error handler

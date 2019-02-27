@@ -3,13 +3,15 @@ import bodyParser from 'body-parser';
 import User from '../models/users';
 import passport from 'passport';
 import * as authenticate from '../authenticate';
+import * as cors from './cors';
+
 
 const userRouter = express.Router();
 
 userRouter.use(bodyParser.json());
 
 /* GET users listing. */
-userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
+userRouter.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {
   User.find({})
   .then(users => {
     res.statusCode = 200;
@@ -19,7 +21,7 @@ userRouter.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(
   .catch(err => next(err));
 });
 
-userRouter.post('/signup', (req, res, next) => {
+userRouter.post('/signup', cors.corsWithOptions, (req, res, next) => {
 
   User.register(new User({username: req.body.username}), req.body.password, (err, user) => {
     if(err){
@@ -52,7 +54,7 @@ userRouter.post('/signup', (req, res, next) => {
 
 })
 
-userRouter.post('/login', passport.authenticate('local'), (req, res) => {
+userRouter.post('/login', cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
   const token = authenticate.getToken({_id: req.user._id});
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
@@ -70,5 +72,14 @@ userRouter.get('/logout' , (req, res, next) => {
     next(err);
   }
 })
+
+userRouter.get('/facebook/token', passport.authenticate('facebook-token'), (req, res) => {
+  if (req.user) {
+    var token = authenticate.getToken({_id: req.user._id});
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({success: true, token: token, status: 'You are successfully logged in!'});
+  }
+});
 
 export default userRouter;
